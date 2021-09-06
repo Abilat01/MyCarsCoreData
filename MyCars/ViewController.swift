@@ -4,7 +4,7 @@ import CoreData
 
 class ViewController: UIViewController {
     
-    lazy var context = (UIApplication.shared.delegate as! AppDelegate).persistentContainer.viewContext
+    var context: NSManagedObjectContext!
     
     @IBOutlet weak var segmentedControl: UISegmentedControl!
     @IBOutlet weak var markLabel: UILabel!
@@ -25,6 +25,42 @@ class ViewController: UIViewController {
     
     @IBAction func rateItPressed(_ sender: UIButton) {
         
+    }
+    
+    private func getDataFromFile() {
+        
+        guard let pathToFile = Bundle.main.path(forResource: "data", ofType: "plist"),
+              let dataArray = NSArray(contentsOfFile: pathToFile) else { return }
+        
+        for dictionary in dataArray {
+            let entity = NSEntityDescription.entity(forEntityName: "Car", in: context)
+            let car = NSManagedObject(entity: entity!, insertInto: context) as! Car
+            
+            let carDictionary = dictionary as! [String : AnyObject]
+            car.mark = carDictionary["mark"] as? String
+            car.model = carDictionary["model"] as? String
+            car.rating = carDictionary["rating"] as! Double
+            car.lastStarted = carDictionary["lastStarted"] as? Date
+            car.timesDriven = carDictionary["timesDriven"] as! Int16
+            car.myChoice = carDictionary["myChoice"] as! Bool
+            
+            let imageName = carDictionary["imageName"] as? String
+            let image = UIImage(named: imageName!)
+            let imageData = image!.pngData()
+            car.imageData = imageData
+            
+            if let colorDictionary = carDictionary["tintColor"] as? [String : Float] {
+                car.tintColor = getColor(colorDictionary: colorDictionary)
+            }
+        }
+        
+    }
+    
+    private func getColor(colorDictionary: [String :  Float]) -> UIColor {
+        guard let red = colorDictionary["red"],
+              let green = colorDictionary["green"],
+              let blue = colorDictionary["blue"] else { return UIColor() }
+        return UIColor(red: CGFloat(red / 255), green: CGFloat(green / 255), blue: CGFloat(blue / 255), alpha: 1.0)
     }
     
     override func viewDidLoad() {
