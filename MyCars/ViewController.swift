@@ -62,7 +62,21 @@ class ViewController: UIViewController {
     }
     
     private func update(rating: Double) {
+        car.rating = rating
         
+        do {
+            try context.save()
+            insertDataFrom(selectedCar: car)
+        } catch let error as NSError {
+            let alertControler = UIAlertController(title: "Wrong value", message: "Wrong input", preferredStyle: .alert)
+            let okAction = UIAlertAction(title: "OK", style: .default)
+            
+            alertControler.addAction(okAction)
+            
+            present(alertControler, animated: true)
+            
+            print(error.localizedDescription)
+        }
     }
     
     private func insertDataFrom(selectedCar car: Car) {
@@ -74,7 +88,7 @@ class ViewController: UIViewController {
         numberOfTripsLabel.text = "Number of trips: \(car.timesDriven)"
         
         lastTimeStartedLabel.text = "Last time started: \(dateFormatter.string(from: car.lastStarted!))"
-        segmentedControl.tintColor = car.tintColor as? UIColor
+        segmentedControl.backgroundColor = car.tintColor as? UIColor
     }
     
     private func getDataFromFile() {
