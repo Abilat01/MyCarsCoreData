@@ -6,6 +6,8 @@ class ViewController: UIViewController {
     
     var context: NSManagedObjectContext!
     
+    var car: Car!
+    
     lazy var dateFormatter: DateFormatter = {
         let df = DateFormatter()
         df.dateStyle = .short
@@ -27,10 +29,39 @@ class ViewController: UIViewController {
     }
     
     @IBAction func startEnginePressed(_ sender: UIButton) {
+        car.timesDriven += 1
+        car.lastStarted = Date()
         
+        do {
+            try context.save()
+            insertDataFrom(selectedCar: car)
+        } catch let error as NSError {
+            print(error.localizedDescription)
+        }
     }
     
     @IBAction func rateItPressed(_ sender: UIButton) {
+        
+        let alertControler = UIAlertController(title: "Rate it", message: "Rate this car please", preferredStyle: .alert)
+        let rateAction = UIAlertAction(title: "Rate", style: .default) { action in
+            if let text = alertControler.textFields?.first?.text {
+                self.update(rating: (text as NSString).doubleValue)
+            }
+        }
+        
+        let cancelAction = UIAlertAction(title: "Cancel", style: .default, handler: nil)
+        
+        alertControler.addTextField { textField in
+            textField.keyboardType = .numberPad
+        }
+        alertControler.addAction(rateAction)
+        alertControler.addAction(cancelAction)
+        
+        present(alertControler, animated: true, completion: nil)
+        
+    }
+    
+    private func update(rating: Double) {
         
     }
     
@@ -106,7 +137,7 @@ class ViewController: UIViewController {
         
         do {
             let results = try context.fetch(fetchRequest)
-            let car = results.first
+            car = results.first
             insertDataFrom(selectedCar: car!)
         } catch let error as NSError {
             print(error.localizedDescription)
